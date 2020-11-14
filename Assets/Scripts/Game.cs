@@ -4,35 +4,60 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
+using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
     GameObject[,] cells = new GameObject[9, 9];
     public int mineNum;
+    public Text time;
+    public Text mines;
+    private DateTime gameStarted;
+    int unfmines;
+    bool playing = true;
 
     void Start()
     {
         placeMines();
         placeClues();
         fillMap();
+        mines.text = mineNum.ToString();
+        unfmines = mineNum;
+        gameStarted = DateTime.Now;
+        InvokeRepeating("Timer", 0f, 0.05f);
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
+        if (playing && (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1)))
         {
             Vector3 mpos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             int x = Mathf.RoundToInt(mpos.x);
             int y = Mathf.RoundToInt(mpos.y);
             if (x >= 0 && y >= 0 && x < 9 && y < 9)
             {
-                if (Input.GetMouseButtonDown(0))
+                if (Input.GetMouseButtonDown(0) && !cells[x,y].GetComponent<Tile>().isFlagged)
                 {
                     recurUncover(x, y);
                 }
-                if (Input.GetMouseButtonDown(1))
+                else if (Input.GetMouseButtonDown(1))
                 {
-                    cells[x, y].GetComponent<Tile>().Flag();
+                    if (cells[x, y].GetComponent<Tile>().Flag())
+                    {
+                        if (cells[x, y].GetComponent<Tile>().tileKind == Tile.Kind.Mine)
+                            unfmines--;
+                        mines.text = (Convert.ToInt32(mines.text) - 1).ToString();
+                        if(unfmines == 0)
+                        {
+                            win();
+                        }
+                    }
+                    else
+                    {
+                        if (cells[x, y].GetComponent<Tile>().tileKind == Tile.Kind.Mine)
+                            unfmines++;
+                        mines.text = (Convert.ToInt32(mines.text) + 1).ToString();
+                    }
                 }
             }
         }
@@ -154,10 +179,39 @@ public class Game : MonoBehaviour
                 else
                     cells[x - 1, y+1].GetComponent<Tile>().Uncover();
         }
+        else if (t.tileKind == Tile.Kind.Clue)
+        {
+            if (x > 0 && cells[x - 1, y].GetComponent<Tile>().isCovered)
+                if (cells[x - 1, y].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x - 1, y);
+            if (y > 0 && cells[x, y - 1].GetComponent<Tile>().isCovered)
+                if (cells[x, y - 1].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x, y - 1);
+            if (x > 0 && y > 0 && cells[x - 1, y - 1].GetComponent<Tile>().isCovered)
+                if (cells[x - 1, y - 1].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x - 1, y - 1);
+            if (x < 8 && cells[x + 1, y].GetComponent<Tile>().isCovered)
+                if (cells[x + 1, y].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x + 1, y);
+            if (y < 8 && cells[x, y + 1].GetComponent<Tile>().isCovered)
+                if (cells[x, y + 1].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x, y + 1);
+            if (x < 8 && y < 8 && cells[x + 1, y + 1].GetComponent<Tile>().isCovered)
+                if (cells[x + 1, y + 1].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x + 1, y + 1);
+            if (x < 8 && y > 0 && cells[x + 1, y - 1].GetComponent<Tile>().isCovered)
+                if (cells[x + 1, y - 1].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x + 1, y - 1);
+            if (x > 0 && y < 8 && cells[x - 1, y + 1].GetComponent<Tile>().isCovered)
+                if (cells[x - 1, y + 1].GetComponent<Tile>().tileKind == Tile.Kind.Blank)
+                    recurUncover(x - 1, y + 1);
+        }
     }
 
     private void lose()
     {
+        playing = false;
+        CancelInvoke("Timer");
         foreach(GameObject obj in cells)
         {
             Tile t = obj.GetComponent<Tile>();
@@ -165,8 +219,31 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void Restart()
+    private void win()
+    {
+        playing = false;
+        CancelInvoke("Timer");
+        foreach (GameObject obj in cells)
+        {
+            Tile t = obj.GetComponent<Tile>();
+            t.Uncover();
+        }
+        if (PlayerPrefs.GetFloat("record") > float.Parse(time.text))
+            PlayerPrefs.SetFloat("record", float.Parse(time.text));
+    }
+
+    private void Timer()
+    {
+        time.text = Math.Round((DateTime.Now - gameStarted).TotalSeconds, 3).ToString();
+    }
+
+    public void GoToMenu()
     {
         SceneManager.LoadScene(0);
+    }
+
+    public void Restart()
+    {
+        SceneManager.LoadScene(1);
     }
 }

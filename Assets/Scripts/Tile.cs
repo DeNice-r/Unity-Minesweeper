@@ -31,7 +31,7 @@ public class Tile : MonoBehaviour
         gameObject.GetComponent<SpriteRenderer>().sprite = CovSprite;
     }
 
-    public void Flag()
+    public bool Flag()
     {
         if (isCovered)
         {
@@ -46,6 +46,7 @@ public class Tile : MonoBehaviour
                 isFlagged = true;
             }
         }
+        return isFlagged;
     }
 
     public bool Uncover(bool lose = false)
