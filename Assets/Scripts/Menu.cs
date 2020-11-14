@@ -10,7 +10,8 @@ public class Menu : MonoBehaviour
 
     private void Start()
     {
-        //PlayerPrefs.SetFloat("record", 1000f);
+        if(PlayerPrefs.GetFloat("record") < 1)
+        PlayerPrefs.SetFloat("record", 999.999f);
         rec.text = PlayerPrefs.GetFloat("record").ToString();
     }
 
