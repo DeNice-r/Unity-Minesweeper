@@ -4,24 +4,17 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public enum Kind
-    {
-        Blank,
-        Mine,
-        Clue
-    }
+    public enum Kind {Blank, Mine, Clue}
 
     [HideInInspector]
     public bool isCovered = true;
     [HideInInspector]
     public bool isFlagged = false;
     public Kind tileKind;
-
     [HideInInspector]
     public Sprite DefSprite;
     public Sprite CovSprite;
     public Sprite FlagSprite;
-
     public Sprite XmineSprite;
     public Sprite RedMineSprite;
 
@@ -30,7 +23,6 @@ public class Tile : MonoBehaviour
         DefSprite = gameObject.GetComponent<SpriteRenderer>().sprite;
         gameObject.GetComponent<SpriteRenderer>().sprite = CovSprite;
     }
-
     public bool Flag()
     {
         if (isCovered)
@@ -48,7 +40,6 @@ public class Tile : MonoBehaviour
         }
         return isFlagged;
     }
-
     public bool Uncover(bool lose = false)
     {
         if (isCovered && !isFlagged)
