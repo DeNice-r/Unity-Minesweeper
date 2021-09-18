@@ -1,2 +1,2 @@
 # Minesweeper
-# C# (.NET Framework) console minesweeper game.
+# Unity minesweeper game.
